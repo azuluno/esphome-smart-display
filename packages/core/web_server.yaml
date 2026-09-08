@@ -1,0 +1,13 @@
+web_server:
+  port: 80
+  version: 2
+
+wifi:
+  ssid: "YourSSID"
+  password: "YourPassword"
+  ap:
+    ssid: "${friendly_name} Setup"
+
+captive_portal:
+ota:
+  - platform: esphome
