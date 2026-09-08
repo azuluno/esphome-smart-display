@@ -1,0 +1,70 @@
+globals:
+  - id: user_backlight_brightness
+    type: float
+    initial_value: '1.0'
+
+output:
+  - platform: ledc
+    pin: ${backlight_pin}
+    id: backlight_pwm
+
+light:
+  - platform: monochromatic
+    name: "Display Backlight"
+    output: backlight_pwm
+    id: display_backlight
+    restore_mode: RESTORE_DEFAULT_HIGH
+
+number:
+  - platform: template
+    name: "Display Brightness"
+    id: display_brightness_slider
+    icon: "mdi:brightness-6"
+    min_value: 10
+    max_value: 100
+    step: 5
+    unit_of_measurement: "%"
+    mode: slider
+    optimistic: true
+    initial_value: 100
+    on_value:
+      then:
+        - light.turn_on:
+            id: display_backlight
+            brightness: !lambda 'return x / 100.0;'
+        - globals.set:
+            id: user_backlight_brightness
+            value: !lambda 'return x / 100.0;'
+
+script:
+  - id: reset_inactivity_timer
+    mode: restart
+    then:
+      - light.turn_on:
+          id: display_backlight
+          brightness: !lambda 'return id(user_backlight_brightness);'
+      - delay: 60s
+      - light.turn_on:
+          id: display_backlight
+          brightness: 10%
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Chip Temperature"
+    id: internal_chip_temp
+    update_interval: 5s
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_chip_temp
+            text: !lambda |-
+              static char buf[32];
+              snprintf(buf, sizeof(buf), "CPU: %.1f°C", x);
+              return buf;
+        - if:
+            condition:
+              lambda: 'return x >= ${temp_throttle_limit};'
+            then:
+              - light.turn_on:
+                  id: display_backlight
+                  brightness: 20%
