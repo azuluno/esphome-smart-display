@@ -1,0 +1,16 @@
+# Secret credentials (WiFi passwords, API keys, basic auth)
+secrets.yaml
+
+# ESPHome local build artifacts & compiled binaries
+.esphome/
+*.bin
+*.elf
+
+# System & OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE configuration folders
+.vscode/
+.idea/
+*.swp
