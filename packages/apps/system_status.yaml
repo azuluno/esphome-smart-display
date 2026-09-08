@@ -1,0 +1,66 @@
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: device_ip
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: lbl_ip
+              text: !lambda 'return ("IP: " + x).c_str();'
+          - qr_code.set_value:
+              id: web_ui_qr
+              value: !lambda 'return "http://" + x;'
+
+  - platform: version
+    name: "ESPHome Version"
+    id: esphome_version
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_fw
+            text: !lambda 'return ("FW: " + x).c_str();'
+
+qr_code:
+  - id: web_ui_qr
+    value: "http://0.0.0.0"
+
+lvgl:
+  on_touch:
+    then:
+      - script.execute: reset_inactivity_timer
+
+  pages:
+    - id: sys_info_page
+      widgets:
+        - label:
+            text: "System Status"
+            align: TOP_MID
+
+        - label:
+            id: lbl_ip
+            text: "IP: Initializing..."
+            align: TOP_LEFT
+            x: 20
+            y: 40
+
+        - label:
+            id: lbl_chip_temp
+            text: "CPU: --°C"
+            align: TOP_LEFT
+            x: 20
+            y: 70
+
+        - label:
+            id: lbl_fw
+            text: "FW: Initializing..."
+            align: TOP_LEFT
+            x: 20
+            y: 100
+
+        - qr_code:
+            id: qr_web_link
+            size: 140
+            align: BOTTOM_RIGHT
+            x: -20
+            y: -20
