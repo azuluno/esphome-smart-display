@@ -1,0 +1,24 @@
+substitutions:
+  device_name: "smart-display-4in"
+  friendly_name: "4.0 Inch Smart Display"
+  backlight_pin: "GPIO04"
+  temp_throttle_limit: "75.0"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+# Import Modular Packages
+packages:
+  hardware: !include packages/hardware/esp32s3_4in_display.yaml
+  core_web: !include packages/core/web_server.yaml
+  core_power: !include packages/core/power_management.yaml
+  app_status: !include packages/apps/system_status.yaml
+  # Comment out or add app packages as needed:
+  # app_bambu: !include packages/apps/bambu_printer.yaml
