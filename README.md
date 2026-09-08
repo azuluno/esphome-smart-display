@@ -43,7 +43,6 @@ You can get the local IP address in two ways:
 
 ### Step 2: Open the Web UI
 In your web browser (Chrome, Safari, Edge, etc.), type:
-```text
 
 ### Step 3: Log In
 When prompted for HTTP Basic Authentication credentials:
@@ -53,4 +52,7 @@ Username: admin (or the value configured in secrets.yaml for web_username)
 Password: The password defined in your secrets.yaml under web_password.
 
 Note: Once logged in, you can adjust the active Display Brightness slider in real-time, view sensor telemetry, and trigger OTA firmware updates.
+
+```text
 http://<DEVICE_IP_ADDRESS>
+(Example: http://192.168.0.150)
