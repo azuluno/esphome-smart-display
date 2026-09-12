@@ -22,3 +22,395 @@ packages:
   app_status: !include packages/apps/system_status.yaml
   # Comment out or add app packages as needed:
   # app_bambu: !include packages/apps/bambu_printer.yaml
+esphome:
+  name: gpanel
+  friendly_name: Gpanel
+  #merge_warnings: false
+  on_boot:
+    - priority: 400
+      then:
+        - script.execute: update_loading_page
+        - light.turn_on:
+           id: display_backlight
+           brightness: 80%
+# Replace this with your actual platform if you aren't using ESP32.
+substitutions:
+  device_name: "smart-display-4in"
+  friendly_name: "4.0 Inch Smart Display"
+  temp_throttle_limit: "75.0"
+  text_font: nunito_20
+  weather_entity: weather.home
+  icon_img_id: my_custom_weather_img_id  # Overrides default 'weather_icon_img'
+  temp_label_id: my_temp_label
+  button_on_color: "light_yellow"
+  button_off_color: "very_dark_gray"
+  tile_off_color: "0x1E1E1E"
+  tile_on_color: "0x2D3748"
+  icon_off_color: "0x888888"
+  icon_on_color: "0xFFB300"
+  label_off_color: "0xCCCCCC"
+  label_on_color: "0xFFFFFF"
+  display_daytime_brightness: "85%"
+  display_nighttime_brightness: "50%"
+  display_night_hour: "22"
+  display_night_minute: "0"
+  display_backlight_timeout_always_enabled: "false"
+  display_backlight_timeout_initial: "30"
+  screen_width: "480"
+  screen_height: "480"
+  mdi_flux_capacitor: "\uF000"
+  mdi_marty_mcfly: "\uE801"
+  widget_bg: "black"
+  bg_color: "very_dark_gray"
+  hum_color: "0x0C78BB"
+  action_entity_id: "light.turn_on"
+  
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+api:
+  encryption:
+    key: !secret gpanel__encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+captive_portal:
+  
+script:
+# IN PACKAGES  → Import Modular Packages
+packages:
+  # Comment out or add app packages as needed:
+  wifi: !include esphome-modular-lvgl-buttons/common/wifi.yaml
+  theme: !include esphome-modular-lvgl-buttons/common/theme/index.yaml
+  sensors: !include esphome-modular-lvgl-buttons/common/sensors_base.yaml
+  backlight: !include esphome-modular-lvgl-buttons/common/backlight_time.yaml
+  hardware: !include esphome-modular-lvgl-buttons/hardware/guition-esp32-s3-4848s040.yaml
+  loading_screen: !include esphome-modular-lvgl-buttons/pages/loading.yaml
+  info_screen: !include esphome-modular-lvgl-buttons/pages/info.yaml
+  # CUSTOM PACKAGES
+  settings_screen: !include esphome-modular-lvgl-buttons/common/custom/settings_page.yaml
+  webserver_page: !include esphome-modular-lvgl-buttons/common/custom/web_dashboard.yaml
+  ha_essentials: !include esphome-modular-lvgl-buttons/common/custom/ha_essentials_pack.yaml
+  screensaver_page: !include esphome-modular-lvgl-buttons/common/custom/screensaver.yaml
+  bambu_homie: !include esphome-modular-lvgl-buttons/common/custom/bambu_labz.yaml
+  # all custom packages made my LucaRana → Comment out or add app packages as needed:
+
+# GRID TEMPLATE AREA 
+  lab_lights: !include
+    file: esphome-modular-lvgl-buttons/ui/light/remote.yaml
+    vars:
+      uid: lab_lights
+      entity_id: "light.lab_lights"
+      row: 0
+      column: 0
+      text: "Lab Lights"
+      icon: $mdi_death_star_variant
+
+  patio_light: !include
+    file: esphome-modular-lvgl-buttons/ui/switch/remote.yaml
+    vars:
+      uid: patio
+      entity_id:  "switch.patio_light"
+      row: 1
+      column: 0
+      text: "Patio"
+      icon: $mdi_glass_tulip
+
+  garage_lights: !include
+    file: esphome-modular-lvgl-buttons/ui/switch/remote.yaml  
+    vars:
+      uid: garage_lights
+      entity_id: "switch.garage_lights"
+      row: 0
+      column: 1
+      text: "Garage"
+      icon: $mdi_light_recessed
+
+  dining_room: !include
+    file: esphome-modular-lvgl-buttons/ui/light/remote.yaml
+    vars:
+      uid: dining
+      entity_id: "light.dining"
+      row: 2
+      column: 1
+      text: "Dining"
+      icon: $mdi_light_recessed
+
+  Stairway: !include                                                                                                                                       
+    file: esphome-modular-lvgl-buttons/ui/switch/remote.yaml                                                                                             
+    vars:                                                                                                                                                       
+      uid: Stairway                                                                                                                                     
+      row: 2                                                                                                                                                    
+      column: 0                                
+      text: "Stairway"                                                                                                                                          
+      icon: $mdi_stairs_box
+      entity_id: "switch.stairway_2"
+      hide_slider: "true"   
+
+  # HEATING BOOST
+
+  dead_bolt: !include
+    file: esphome-modular-lvgl-buttons/ui/sensor_button/remote.yaml
+    vars:
+      uid: dead_bolt
+      entity_id: "lock.front_door_deadbolt"
+      action_entity_id: "switch.porch_light"
+      row: 1
+      column: 1
+      text: "Porch"
+      icon: $mdi_lightbulb_on_10
+      #unit: "°C"
+
+lvgl:
+  pages:
+    - id: main_page
+      layout: 3x2
+      styles: page_style
+
+      <<: !include esphome-modular-lvgl-buttons/common/swipe_navigation.yaml
+
+      
+      # custom grid layout 2x2 template for at a glance row and col numbers
+    - id: second_page
+      layout: 2x2
+      styles: page_style
+      pad_all: 0
+      bg_color: 0x0F1218
+      <<: !include esphome-modular-lvgl-buttons/common/swipe_navigation.yaml
+      scrollbar_mode: "OFF"
+      widgets:
+  
+        # ==========================================
+        # CELL 1: TOP-LEFT (Row 0, Column 0)
+        # ==========================================
+        - obj:
+            id: card_top_left
+            grid_cell_row_pos: 0
+            grid_cell_column_pos: 0
+            grid_cell_row_span: 1
+            grid_cell_column_span: 1
+            grid_cell_x_align: STRETCH
+            grid_cell_y_align: STRETCH
+            bg_color: 0x111827
+            bg_opa: 100%
+            border_width: 2
+            border_color: 0x1F2937
+            radius: 12
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              - label:
+                  id: lbl_top_left
+                  align: CENTER
+                  text: "Top-Left\n(Row 0, Col 0)"
+                  text_color: 0xFFFFFF
+                  text_align: CENTER
+  
+        # ==========================================
+        # CELL 2: TOP-RIGHT (Row 0, Column 1)
+        # ==========================================
+        - obj:
+            id: card_top_right
+            grid_cell_row_pos: 0
+            grid_cell_column_pos: 1
+            grid_cell_row_span: 1
+            grid_cell_column_span: 1
+            grid_cell_x_align: STRETCH
+            grid_cell_y_align: STRETCH
+            bg_color: 0x111827
+            bg_opa: 100%
+            border_width: 2
+            border_color: 0x1F2937
+            radius: 12
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              - label:
+                  id: lbl_top_right
+                  align: CENTER
+                  text: "Top-Right\n(Row 0, Col 1)"
+                  text_color: 0xFFFFFF
+                  text_align: CENTER
+  
+        # ==========================================
+        # CELL 3: BOTTOM-LEFT (Row 1, Column 0)
+        # ==========================================
+        - obj:
+            id: card_bottom_left
+            grid_cell_row_pos: 1
+            grid_cell_column_pos: 0
+            grid_cell_row_span: 1
+            grid_cell_column_span: 1
+            grid_cell_x_align: STRETCH
+            grid_cell_y_align: STRETCH
+            bg_color: 0x111827
+            bg_opa: 100%
+            border_width: 2
+            border_color: 0x1F2937
+            radius: 12
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              - label:
+                  id: lbl_bottom_left
+                  align: CENTER
+                  text: "Bottom-Left\n(Row 1, Col 0)"
+                  text_color: 0xFFFFFF
+                  text_align: CENTER
+  
+        # ==========================================
+        # CELL 4: BOTTOM-RIGHT (Row 1, Column 1)
+        # ==========================================
+        - obj:
+            id: card_bottom_right
+            grid_cell_row_pos: 1
+            grid_cell_column_pos: 1
+            grid_cell_row_span: 1
+            grid_cell_column_span: 1
+            grid_cell_x_align: STRETCH
+            grid_cell_y_align: STRETCH
+            bg_color: 0x111827
+            bg_opa: 100%
+            border_width: 2
+            border_color: 0x1F2937
+            radius: 12
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              - label:
+                  id: lbl_bottom_right
+                  align: CENTER
+                  text: "Bottom-Right\n(Row 1, Col 1)"
+                  text_color: 0xFFFFFF
+                  text_align: CENTER
+
+      
+
+image:
+  #BACKGROUNDS
+  #- platform: file
+  #  file: /config/esphome/images/dalor480.png
+  #  id: dalor_bg
+  #  type: RGB565
+  
+  #IMAGES
+  - platform: file
+    file: /config/esphome/images/esphome.png
+    id: esphome_img
+    type: RGB565
+    transparency: alpha_channel
+  - platform: file
+    
+    file: /config/esphome/images/halogo.png
+    resize: 84x84
+    id: ha_img
+    type: RGB565
+    transparency: alpha_channel
+    
+  - platform: file
+    file: /config/esphome/images/lucaiconblk.png
+    resize: 150x150
+    id: luca_img
+    type: RGB565
+    transparency: alpha_channel
+    
+font:
+  - file:
+      path: "fonts/materialdesignicons-webfont.ttf"
+      type: local
+    id: mdi_icons_40
+    bpp: 8
+    size: 40
+    glyphs: &base_mdi_glyphs
+    # Required by light detail page
+      - $mdi_brightness_6
+      - $mdi_chevron_up
+      - $mdi_circle_opacity
+      - $mdi_eyedropper
+      - $mdi_lightbulb
+      # Main dashboard icons
+      - $mdi_ceiling_light
+      - $mdi_light_recessed
+      - $mdi_thermometer_chevron_up
+      - $mdi_stairs_box
+      - $mdi_desk_lamp
+      - $mdi_thermometer
+      - $mdi_sprout_outline
+      - $mdi_floor_lamp
+      - $mdi_memory
+      - $mdi_one_up
+      - $mdi_water_opacity
+      - $mdi_wifi_sync
+      - $mdi_cog
+      - $mdi_flask_outline
+      - $mdi_panda
+      - $mdi_lightbulb_on_10
+      - $mdi_lightbulb_cfl_spiral
+      - $mdi_glass_tulip
+      - $mdi_waveform
+      - $mdi_solar_power
+      - $mdi_chevron_right
+      - $mdi_chevron_left
+      - $mdi_printer_3d_nozzle_outline
+      - $mdi_death_star_variant
+      - $mdi_zigbee
+      - $mdi_track_light_off
+      - $mdi_track_light
+      - $mdi_spotlight_beam
+      - $mdi_chevron_double_down
+      - $mdi_sofa_single
+      - $mdi_sofa_single_outline
+      - $mdi_security_network
+
+  - file:
+      path: "fonts/materialdesignicons-webfont.ttf"
+      type: local
+    id: mdi_icons_28
+    size: 28
+    bpp: 8
+    glyphs: *base_mdi_glyphs
+
+  - file:
+      path: "fonts/materialdesignicons-webfont.ttf"
+      type: local
+    id: mdi_icons_20
+    size: 20
+    bpp: 8
+    glyphs: *base_mdi_glyphs
+      
+
+  - file: &arimo_file
+      path: "/config/esphome/fonts/Arimo-Regular.ttf"
+      type: local
+    glyphs: &arimo_glyphs " .°,|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:-%_/$+()"
+    id: font_sm
+    size: 12
+  # Use the aliases (*) for all subsequent sizes
+  - file: *arimo_file
+    glyphs: *arimo_glyphs
+    id: font_md
+    size: 16
+
+  - file: *arimo_file
+    glyphs: *arimo_glyphs
+    id: font_ss
+    size: 10
+
+  - file: *arimo_file
+    glyphs: *arimo_glyphs
+    id: marty_mcfly_font
+    size: 23
+
+ 
+  - file: "gfonts://Nunito"
+    id: nunito_2026
+    size: 20
